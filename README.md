@@ -81,7 +81,7 @@ SYNC/
 ### Build via Command Line
 ```powershell
 # 1. Clone repository
-git clone https://github.com/sync-audio/sync.git
+git clone https://github.com/1amkrs/SYNC.git
 cd sync
 
 # 2. Build complete solution with MSBuild

@@ -2,7 +2,7 @@
 #define MyAppName "SYNC"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "SYNC Open Source Project"
-#define MyAppURL "https://github.com/sync-audio/sync"
+#define MyAppURL "https://github.com/1amkrs/SYNC"
 #define MyAppExeName "Sync.App.exe"
 
 [Setup]
