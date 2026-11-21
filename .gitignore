@@ -1,0 +1,22 @@
+## Visual Studio & MSVC
+.vs/
+obj/
+bin/x64/
+*.user
+*.aps
+*.pch
+*.ipch
+*.iobj
+*.ipdb
+*.pdb
+*.ilk
+
+## .NET & NuGet
+[Bb]in/
+[Oo]bj/
+packages/
+*.nupkg
+
+## Keep dist binaries
+!bin/dist/
+!bin/portable/

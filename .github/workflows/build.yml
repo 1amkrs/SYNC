@@ -1,0 +1,46 @@
+name: SYNC Windows CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build SYNC Solution (Release x64)
+      run: |
+        msbuild SYNC.sln /p:Configuration=Release /p:Platform=x64
+
+    - name: Run Automated Tests
+      run: |
+        dotnet test tests\AudioTests\AudioTests.csproj -c Release --no-build --verbosity normal
+
+    - name: Publish Portable Executable
+      run: |
+        dotnet publish src\Sync.App\Sync.App.csproj -c Release -r win-x64 --self-contained false -o bin\portable
+
+    - name: Package Portable Distribution
+      shell: powershell
+      run: |
+        .\installer\build-portable-zip.ps1
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SYNC-Windows-x64-Portable
+        path: bin/dist/*.zip

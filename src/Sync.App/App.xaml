@@ -1,0 +1,26 @@
+﻿<Application x:Class="Sync.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="Views/MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Custom Accent & Surface Colors for Dark Theme -->
+            <SolidColorBrush x:Key="SyncAccentBrush" Color="#00A8FF" />
+            <SolidColorBrush x:Key="SyncCardBackgroundBrush" Color="#1E232F" />
+            <SolidColorBrush x:Key="SyncCardBorderBrush" Color="#2A3142" />
+            <SolidColorBrush x:Key="SyncMeterActiveBrush" Color="#00E5A3" />
+            <SolidColorBrush x:Key="SyncMeterWarnBrush" Color="#FFB800" />
+            <SolidColorBrush x:Key="SyncMeterCritBrush" Color="#FF4D4D" />
+            <SolidColorBrush x:Key="SyncMutedBrush" Color="#8E9AA8" />
+
+            <Style TargetType="ToolTip">
+                <Setter Property="Background" Value="#222733"/>
+                <Setter Property="Foreground" Value="#E0E6ED"/>
+                <Setter Property="BorderBrush" Value="#353E52"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="8,4"/>
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

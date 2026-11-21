@@ -1,0 +1,515 @@
+<Window x:Class="Sync.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        mc:Ignorable="d"
+        Title="SYNC — Multi-Device Bluetooth Audio" 
+        Height="800" Width="1050"
+        MinHeight="680" MinWidth="850"
+        WindowStartupLocation="CenterScreen"
+        Background="#121620"
+        Foreground="#E5EBF5">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- Card Style -->
+        <Style x:Key="FluentCardBorder" TargetType="Border">
+            <Setter Property="Background" Value="#1B202D" />
+            <Setter Property="BorderBrush" Value="#293042" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <!-- Navigation Tab Button Style -->
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#95A3B8" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#232A3B" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stepper Button Style -->
+        <Style x:Key="StepperButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#252D3F" />
+            <Setter Property="Foreground" Value="#C2CFE0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#35405A" />
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Header Bar -->
+            <RowDefinition Height="64" />
+            <!-- Main Content Area -->
+            <RowDefinition Height="*" />
+            <!-- Status / Telemetry Footer -->
+            <RowDefinition Height="42" />
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Background="#161B26" BorderBrush="#252C3D" BorderThickness="0,0,0,1" Padding="20,0">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Wordmark & Logo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="30" Height="30" CornerRadius="15" Background="#00A8FF" Margin="0,0,10,0">
+                        <TextBlock Text="S" FontWeight="ExtraBold" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="SYNC" FontWeight="Black" FontSize="20" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                    <TextBlock Text="AUDIO" FontWeight="Light" FontSize="11" Foreground="#00E5A3" VerticalAlignment="Bottom" Margin="6,0,0,4"/>
+                </StackPanel>
+
+                <!-- Playback Status Pill -->
+                <Border Grid.Column="1" Margin="24,0,0,0" CornerRadius="12" Background="#1D2433" BorderBrush="#2F3A50" BorderThickness="1" Padding="10,4" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="8" Height="8" Fill="{Binding StatusPillColor, RelativeSource={RelativeSource AncestorType=Window}}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding StatusPillText, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="11" FontWeight="Bold" Foreground="#CCD7E6" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Navigation Tabs -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Content="Dashboard" Style="{StaticResource NavButtonStyle}" Click="NavDashboard_Click" Margin="4,0" />
+                    <Button Content="Device Manager" Style="{StaticResource NavButtonStyle}" Click="NavDevices_Click" Margin="4,0" />
+                    <Button Content="Settings" Style="{StaticResource NavButtonStyle}" Click="NavSettings_Click" Margin="4,0" />
+                </StackPanel>
+
+                <!-- Quick Action: Mute All -->
+                <Button Grid.Column="3" Click="QuickMute_Click" Style="{StaticResource NavButtonStyle}" Background="#222A3B" Margin="0,0,0,0" Padding="12,6">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔇 Mute All" FontSize="12" Foreground="#CBD5E1"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- MAIN CONTENT AREA -->
+        <Grid Grid.Row="1" Margin="24,18">
+
+            <!-- TAB 1: DASHBOARD -->
+            <Grid x:Name="TabDashboard" Visibility="Visible">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Top Audio Source Card -->
+                <Border Grid.Row="0" Style="{StaticResource FluentCardBorder}" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="280" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Source Info -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="CAPTURE SOURCE" FontSize="10" FontWeight="Bold" Foreground="#7E8DA3" Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding Audio.CaptureDeviceName, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <Border Background="#162D3B" BorderBrush="#00A8FF" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                    <TextBlock Text="WASAPI Loopback" FontSize="10" FontWeight="Bold" Foreground="#00A8FF"/>
+                                </Border>
+                                <Border Background="#17332B" BorderBrush="#00E5A3" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="{Binding Audio.CaptureSampleRate, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='{}{0} Hz Stereo'}" FontSize="10" FontWeight="Bold" Foreground="#00E5A3"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Live Audio Activity Meters (Left & Right VU Bars) -->
+                        <Grid Grid.Column="1" Margin="24,0" VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="10" />
+                                <RowDefinition Height="4" />
+                                <RowDefinition Height="10" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="AUDIO ACTIVITY" FontSize="10" FontWeight="Bold" Foreground="#7E8DA3" Margin="0,0,0,4"/>
+
+                            <!-- Left Meter -->
+                            <Border Grid.Row="1" Background="#11151E" CornerRadius="3" ClipToBounds="True">
+                                <ProgressBar x:Name="MeterBarL" Minimum="0" Maximum="100" Value="{Binding PeakLevelLeftPercent, RelativeSource={RelativeSource AncestorType=Window}}" Foreground="#00E5A3" Background="Transparent" BorderThickness="0"/>
+                            </Border>
+
+                            <!-- Right Meter -->
+                            <Border Grid.Row="3" Background="#11151E" CornerRadius="3" ClipToBounds="True">
+                                <ProgressBar x:Name="MeterBarR" Minimum="0" Maximum="100" Value="{Binding PeakLevelRightPercent, RelativeSource={RelativeSource AncestorType=Window}}" Foreground="#00A8FF" Background="Transparent" BorderThickness="0"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Master Volume Slider -->
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <Grid Margin="0,0,0,4">
+                                <TextBlock Text="MASTER VOLUME" FontSize="10" FontWeight="Bold" Foreground="#7E8DA3"/>
+                                <TextBlock Text="{Binding Audio.MasterVolume, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='{}{0:P0}'}" FontSize="11" FontWeight="Bold" Foreground="#CCD7E6" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Slider Minimum="0" Maximum="1" Value="{Binding Audio.MasterVolume, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}" SmallChange="0.05" LargeChange="0.1" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Center: Connected Devices List -->
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="OUTPUT DEVICES" FontSize="12" FontWeight="Bold" Foreground="#A0AEC0"/>
+                            <TextBlock Text="{Binding Audio.SelectedOutputs.Count, RelativeSource={RelativeSource AncestorType=Window}, StringFormat=' ({0} Selected)'}" FontSize="12" FontWeight="Bold" Foreground="#00A8FF"/>
+                        </StackPanel>
+                        <Button Content="+ Add Outputs" Click="NavDevices_Click" HorizontalAlignment="Right" Style="{StaticResource NavButtonStyle}" Background="#1F2636" Padding="12,5" FontSize="11"/>
+                    </Grid>
+
+                    <!-- Device Cards Scroll Area -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Audio.SelectedOutputs, RelativeSource={RelativeSource AncestorType=Window}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource FluentCardBorder}" Margin="0,0,0,12" Background="#191F2C">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Card Header: Device Name, Transport, Enabled Toggle -->
+                                            <Grid Grid.Row="0" Margin="0,0,0,12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding DisplayName}" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis"/>
+                                                        <Border Background="#252D3F" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding TransportDisplay}" FontSize="10" FontWeight="SemiBold" Foreground="#A0AEC0"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding AdapterName}" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                                                </StackPanel>
+
+                                                <!-- Status Badge -->
+                                                <Border Grid.Column="1" VerticalAlignment="Center" Margin="14,0" Background="#11221E" BorderBrush="#00E5A3" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                                    <TextBlock Text="ACTIVE" FontSize="10" FontWeight="Bold" Foreground="#00E5A3"/>
+                                                </Border>
+
+                                                <!-- Enable/Disable Toggle -->
+                                                <CheckBox Grid.Column="2" IsChecked="{Binding IsEnabled, Mode=TwoWay}" Content="Enabled" VerticalAlignment="Center" Foreground="#CBD5E1" FontWeight="SemiBold" FontSize="12"/>
+                                            </Grid>
+
+                                            <!-- Card Body: Volume, Delay Adjustment, Buffer Health & Telemetry -->
+                                            <Grid Grid.Row="1">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="220" />
+                                                    <ColumnDefinition Width="280" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Individual Device Volume -->
+                                                <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
+                                                    <Grid Margin="0,0,0,2">
+                                                        <TextBlock Text="VOLUME" FontSize="10" FontWeight="Bold" Foreground="#7E8DA3"/>
+                                                        <TextBlock Text="{Binding Volume, StringFormat='{}{0:P0}'}" FontSize="11" FontWeight="Bold" Foreground="#CBD5E1" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                    <Slider Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}" SmallChange="0.05" LargeChange="0.1"/>
+                                                </StackPanel>
+
+                                                <!-- Synchronization Delay Calibration Stepper -->
+                                                <StackPanel Grid.Column="1" Margin="10,0,20,0" VerticalAlignment="Center">
+                                                    <Grid Margin="0,0,0,2">
+                                                        <TextBlock Text="SYNC DELAY OFFSET" FontSize="10" FontWeight="Bold" Foreground="#7E8DA3"/>
+                                                        <TextBlock Text="{Binding DelayOffsetMs, StringFormat='{}{0} ms'}" FontSize="11" FontWeight="Bold" Foreground="#00A8FF" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button Grid.Column="0" Content="-1" Style="{StaticResource StepperButtonStyle}" Click="DelayMinus_Click" Tag="{Binding}"/>
+                                                        <Slider Grid.Column="1" Minimum="-500" Maximum="500" Value="{Binding DelayOffsetMs, Mode=TwoWay}" Margin="8,0" SmallChange="1" LargeChange="10"/>
+                                                        <Button Grid.Column="2" Content="+1" Style="{StaticResource StepperButtonStyle}" Click="DelayPlus_Click" Tag="{Binding}"/>
+                                                    </Grid>
+                                                </StackPanel>
+
+                                                <!-- Buffer Health & Diagnostics Telemetry -->
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                    <Grid Margin="0,0,0,2">
+                                                        <TextBlock Text="BUFFER HEALTH" FontSize="10" FontWeight="Bold" Foreground="#7E8DA3"/>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                            <TextBlock Text="{Binding BufferOccupancyPercent, StringFormat='{}{0}% filled'}" FontSize="10" Foreground="#CBD5E1" Margin="0,0,8,0"/>
+                                                            <TextBlock Text="{Binding UnderrunCount, StringFormat='{}Underruns: {0}'}" FontSize="10" Foreground="#FF9F43"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding BufferOccupancyPercent}" Height="6" Foreground="#00E5A3" Background="#11151F" BorderThickness="0"/>
+                                                    <Grid Margin="0,4,0,0">
+                                                        <TextBlock Text="{Binding EstimatedDriftPpm, StringFormat='{}Drift: {0} PPM'}" FontSize="10" Foreground="#94A3B8"/>
+                                                        <TextBlock Text="{Binding MeasuredLatencyMs, StringFormat='{}WASAPI: {0:F1} ms'}" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- Bottom Playback Control Actions -->
+                <Border Grid.Row="2" Background="#161B26" BorderBrush="#252C3D" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,12,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Primary Start/Stop Button -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="BtnTogglePlay" Click="BtnTogglePlay_Click" Width="200" Height="40" Background="#00A8FF" Foreground="White" FontWeight="Bold" FontSize="14" Cursor="Hand" BorderThickness="0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <TextBlock Text="{Binding PlayButtonText, RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Center"/>
+                            </Button>
+
+                            <!-- Calibration Test Signal Button -->
+                            <Button Click="BtnTestSignal_Click" Margin="14,0,0,0" Padding="14,8" Background="#242B3C" BorderBrush="#35405A" BorderThickness="1" Foreground="#C8D4E5" FontWeight="SemiBold" FontSize="12" Cursor="Hand">
+                                <TextBlock Text="{Binding TestToneButtonText, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Save Group Quick Action -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBox x:Name="TxtQuickGroupName" Width="140" Height="32" Background="#1D2332" Foreground="#FFFFFF" BorderBrush="#333E56" BorderThickness="1" Padding="6,4" VerticalContentAlignment="Center" Margin="0,0,8,0" Text="{Binding NewGroupName, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}" ToolTip="Enter group name"/>
+                            <Button Content="Save Group" Click="BtnSaveGroup_Click" Style="{StaticResource NavButtonStyle}" Background="#20283A" Padding="12,8" FontSize="12"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- TAB 2: DEVICE MANAGER -->
+            <Grid x:Name="TabDevices" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Audio Endpoint Routing" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Select audio outputs to include in SYNC playback. Connect Bluetooth audio devices in Windows settings." FontSize="12" Foreground="#8A9BB3" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Pair Bluetooth Device" Click="BtnPairBluetooth_Click" Style="{StaticResource NavButtonStyle}" Background="#1F283B" Margin="0,0,8,0" Padding="12,6"/>
+                        <Button Content="Refresh Devices" Click="BtnRefreshDevices_Click" Style="{StaticResource NavButtonStyle}" Background="#00A8FF" Foreground="White" Padding="12,6"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- List of Available Windows Audio Endpoints -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Audio.AvailableEndpoints, RelativeSource={RelativeSource AncestorType=Window}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource FluentCardBorder}" Margin="0,0,0,8" Padding="14,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="200" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Select Checkbox -->
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}" Click="DeviceCheckbox_Click" VerticalAlignment="Center" Margin="0,0,12,0"/>
+
+                                        <!-- Device Details -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                                <Border Background="#252D3F" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding TransportDisplay}" FontSize="10" FontWeight="SemiBold" Foreground="#A0AEC0"/>
+                                                </Border>
+                                                <Border Visibility="{Binding IsDefault, Converter={StaticResource BoolToVis}}" Background="#1A342B" BorderBrush="#00E5A3" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="Windows Default" FontSize="10" FontWeight="Bold" Foreground="#00E5A3"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Id}" FontSize="10" Foreground="#55647C" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Local Custom Alias -->
+                                        <TextBox Grid.Column="2" Text="{Binding CustomLabel, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Background="#161B26" Foreground="#CBD5E1" BorderBrush="#2F3B52" BorderThickness="1" Padding="8,4" VerticalContentAlignment="Center" Margin="0,0,16,0" ToolTip="Custom nickname for this device"/>
+
+                                        <!-- Inclusion Action Button -->
+                                        <Button Grid.Column="3" Content="Select / Deselect" Click="DeviceActionButton_Click" Tag="{Binding}" Style="{StaticResource NavButtonStyle}" Background="#242B3C" Padding="12,6"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Saved Groups Footer -->
+                <Border Grid.Row="2" Style="{StaticResource FluentCardBorder}" Margin="0,14,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Saved Device Groups" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Save multi-room or multi-speaker setups to instantly restore them anytime." FontSize="11" Foreground="#8A9BB3"/>
+                        </StackPanel>
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding SavedGroups, RelativeSource={RelativeSource AncestorType=Window}}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding GroupName}" Click="BtnLoadGroup_Click" Tag="{Binding}" Style="{StaticResource NavButtonStyle}" Background="#222B3D" Margin="4,0" Padding="10,5"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- TAB 3: SETTINGS -->
+            <Grid x:Name="TabSettings" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel MaxWidth="800" HorizontalAlignment="Left">
+                        <TextBlock Text="Application Settings" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,16"/>
+
+                        <!-- General & Background Operations -->
+                        <Border Style="{StaticResource FluentCardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="BACKGROUND OPERATION" FontSize="11" FontWeight="Bold" Foreground="#7E8DA3" Margin="0,0,0,10"/>
+                                <CheckBox x:Name="ChkStartup" Content="Launch SYNC at Windows startup" IsChecked="{Binding Settings.Current.LaunchAtStartup, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}" Checked="Setting_Changed" Unchecked="Setting_Changed" Margin="0,6" Foreground="#E2E8F0"/>
+                                <CheckBox x:Name="ChkMinimizeToTray" Content="Minimize to system tray on window close (keeps audio playing in background)" IsChecked="{Binding Settings.Current.MinimizeToTray, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}" Checked="Setting_Changed" Unchecked="Setting_Changed" Margin="0,6" Foreground="#E2E8F0"/>
+                                <CheckBox x:Name="ChkAutoStart" Content="Start audio synchronization automatically on application launch" IsChecked="{Binding Settings.Current.AutoStartPlayback, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}" Checked="Setting_Changed" Unchecked="Setting_Changed" Margin="0,6" Foreground="#E2E8F0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Buffering & Quality Presets -->
+                        <Border Style="{StaticResource FluentCardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="SYNCHRONIZATION &amp; BUFFERING QUALITY" FontSize="11" FontWeight="Bold" Foreground="#7E8DA3" Margin="0,0,0,8"/>
+                                <TextBlock Text="Lower buffer delay reduces overall latency for videos, while higher buffer delay provides maximum stability over crowded Bluetooth 2.4 GHz airwaves." FontSize="11" Foreground="#8A9BB3" Margin="0,0,0,12" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Content="Low Latency (50 ms)" GroupName="QualityPreset" Click="PresetLowLatency_Click" Foreground="#E2E8F0" Margin="0,0,24,0"/>
+                                    <RadioButton Content="Balanced (100 ms) — Recommended" GroupName="QualityPreset" IsChecked="True" Click="PresetBalanced_Click" Foreground="#E2E8F0" Margin="0,0,24,0"/>
+                                    <RadioButton Content="High Stability (200 ms)" GroupName="QualityPreset" Click="PresetHighStability_Click" Foreground="#E2E8F0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Diagnostics & Tools -->
+                        <Border Style="{StaticResource FluentCardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="DIAGNOSTICS &amp; CALIBRATION TOOLS" FontSize="11" FontWeight="Bold" Foreground="#7E8DA3" Margin="0,0,0,8"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <Button Content="Reset All Calibrated Delays" Click="BtnResetCalibration_Click" Style="{StaticResource NavButtonStyle}" Background="#3A242B" Foreground="#FF6B8B" Margin="0,0,12,0"/>
+                                    <Button Content="Export Diagnostic Report" Click="BtnExportReport_Click" Style="{StaticResource NavButtonStyle}" Background="#00A8FF" Foreground="White" Margin="0,0,12,0"/>
+                                    <Button Content="Open Windows Sound Settings" Click="BtnOpenSoundSettings_Click" Style="{StaticResource NavButtonStyle}" Background="#222B3D"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Engineering Documentation Card -->
+                        <Border Style="{StaticResource FluentCardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="HOW SYNC OPERATES (ARCHITECTURE &amp; PHYSICS)" FontSize="11" FontWeight="Bold" Foreground="#7E8DA3" Margin="0,0,0,8"/>
+                                <TextBlock Text="• Master Audio Timeline: Audio is captured via WASAPI Loopback and stamped with 100ns QPC monotonic timestamps." FontSize="11" Foreground="#94A3B8" Margin="0,2"/>
+                                <TextBlock Text="• Asynchronous Resampling (ASRC): Each device has an independent physical crystal oscillator. SYNC continually estimates clock drift in PPM and adapts the resampling ratio to prevent buffer underruns." FontSize="11" Foreground="#94A3B8" Margin="0,2"/>
+                                <TextBlock Text="• Non-destructive Negative Delay: A negative relative offset on Device A automatically elevates the common buffering delay on other devices, eliminating the negative time travel paradox." FontSize="11" Foreground="#94A3B8" Margin="0,2"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- STATUS / TELEMETRY FOOTER -->
+        <Border Grid.Row="2" Background="#0E121B" BorderBrush="#1F2535" BorderThickness="0,1,0,0" Padding="20,0">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Status: " FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                    <TextBlock Text="{Binding Audio.StatusText, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="11" Foreground="#CBD5E1"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Outputs: " FontSize="11" Foreground="#64748B"/>
+                    <TextBlock Text="{Binding Audio.ActiveOutputCount, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="11" FontWeight="Bold" Foreground="#00E5A3" Margin="0,0,16,0"/>
+
+                    <TextBlock Text="Total Captured: " FontSize="11" Foreground="#64748B"/>
+                    <TextBlock Text="{Binding Audio.TotalCapturedFrames, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='{}{0:N0} frames'}" FontSize="11" Foreground="#CBD5E1" Margin="0,0,16,0"/>
+
+                    <TextBlock Text="Loopback: " FontSize="11" Foreground="#64748B"/>
+                    <TextBlock Text="{Binding Audio.CaptureSampleRate, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='{}{0} Hz'}" FontSize="11" Foreground="#00A8FF"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
